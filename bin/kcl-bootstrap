@@ -19,7 +19,6 @@ permissions and limitations under the License.
 
 
 var fs = require('fs');
-var http = require('http');
 var https = require('https');
 var path = require('path');
 var program = require('commander');
@@ -174,13 +173,12 @@ function httpDownloadFile(requestUrl, destinationFile, redirectCount, callback) 
     callback('Reached maximum redirects. ' + requestUrl + ' could not be downloaded.');
     return;
   }
-  var protocol = (url.parse(requestUrl).protocol === 'https' ? https : http);
   var options = {
     hostname: url.parse(requestUrl).hostname,
     path: url.parse(requestUrl).path,
     agent: false
   };
-  var request = protocol.get(options, function(response) {
+  var request = https.get(options, function(response) {
     // Non-2XX response.
     if (response.statusCode > 300) {
       if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
