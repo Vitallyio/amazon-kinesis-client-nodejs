@@ -67,7 +67,9 @@ function bootstrap() {
     if (err) {
       errorExit(util.format('Unable to download Multi-Language Daemon jar files from maven: %s', err));
     }
-    startKinesisClientLibraryApplication(args);
+    if (!args.downloadonly) {
+      startKinesisClientLibraryApplication(args);
+    }
   });
 }
 
@@ -77,13 +79,15 @@ function parseArguments() {
     .option('-j, --java [java path]', 'path to java executable - defaults to using JAVA_HOME environment variable to get java path (optional)')
     .option('-c, --jar-path [jar path]', 'path where all multi-language daemon jar files will be downloaded (optional)')
     .option('-e, --execute', 'execute the KCL application')
+    .option('-d, --downloadonly', 'Download dependencies only')
     .parse(process.argv);
 
   var args = {
     'properties': program.properties,
     'java': (program.java ? program.java : (process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java') : null)),
     'jarPath': (program.jarPath ? program.jarPath : DEFAULT_JAR_PATH),
-    'execute': program.execute
+    'execute': program.execute,
+    'downloadonly': program.downloadonly != null
   };
 
   if (!args.properties) {
@@ -178,7 +182,7 @@ function httpDownloadFile(requestUrl, destinationFile, redirectCount, callback) 
     path: url.parse(requestUrl).path,
     agent: false
   };
-  var request = https.get(options, function(response) {
+  https.get(options, function(response) {
     // Non-2XX response.
     if (response.statusCode > 300) {
       if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
